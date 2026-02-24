@@ -14,6 +14,8 @@ class RankingService:
 
     # Base scores for each category
     CATEGORY_SCORES = {
+        'holiday': 98,  # Holidays are very important
+        'event': 90,    # Special events (Super Bowl, Black Friday, etc.)
         'weather_alert': 95,
         'severe_weather': 85,
         'local_event': 80,

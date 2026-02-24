@@ -62,11 +62,11 @@ def search():
         # Calculate response time
         response_time_ms = int((end_time - start_time).total_seconds() * 1000)
 
-        # Add metadata
-        result['metadata'] = {
-            'response_time_ms': response_time_ms,
-            'timestamp': end_time.isoformat()
-        }
+        # Add metadata (preserve existing metadata from orchestrator)
+        if 'metadata' not in result:
+            result['metadata'] = {}
+        result['metadata']['response_time_ms'] = response_time_ms
+        result['metadata']['timestamp'] = end_time.isoformat()
 
         logger.info(f"Search completed in {response_time_ms}ms, returned {len(result.get('results', []))} items")
 

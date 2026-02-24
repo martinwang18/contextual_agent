@@ -110,11 +110,13 @@ function displayResults(data) {
     // Update location
     resultsLocation.textContent = `📍 ${data.query.location} on ${formatDate(data.query.date)}`;
 
-    // Create result cards
-    data.results.forEach((item, index) => {
-        const card = createResultCard(item, index + 1);
-        resultsList.appendChild(card);
-    });
+    // Check if we have categorized data
+    if (data.metadata && data.metadata.categorized) {
+        displayCategorizedResults(data.metadata.categorized);
+    } else {
+        // Fallback to legacy top 5 view
+        displayLegacyResults(data.results);
+    }
 
     // Update metadata
     if (data.metadata) {
@@ -133,6 +135,140 @@ function displayResults(data) {
 
     // Smooth scroll to results
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/**
+ * Display categorized results in tables
+ */
+function displayCategorizedResults(categorized) {
+    // Display holidays/events (if any)
+    if (categorized.holidays && categorized.holidays.length > 0) {
+        displayHolidays(categorized.holidays);
+        document.getElementById('holidaysSection').classList.remove('hidden');
+    } else {
+        document.getElementById('holidaysSection').classList.add('hidden');
+    }
+
+    // Display weather
+    displayWeather(categorized.weather);
+
+    // Display local news table
+    displayNewsTable('localNewsBody', categorized.local_news);
+
+    // Display national news table
+    displayNewsTable('nationalNewsBody', categorized.national_news);
+
+    // Show category sections
+    document.getElementById('weatherSection').classList.remove('hidden');
+    document.getElementById('localNewsSection').classList.remove('hidden');
+    document.getElementById('nationalNewsSection').classList.remove('hidden');
+    document.getElementById('top5Section').classList.add('hidden');
+}
+
+/**
+ * Display holidays and special events
+ */
+function displayHolidays(holidayItems) {
+    const holidaysContent = document.getElementById('holidaysContent');
+    holidaysContent.innerHTML = '';
+
+    holidayItems.forEach(item => {
+        const card = document.createElement('div');
+        const typeClass = item.metadata?.type || 'observance';
+        const isFederal = item.metadata?.is_federal;
+
+        card.className = 'holiday-card';
+        if (isFederal) {
+            card.classList.add('federal');
+        } else if (item.category === 'event') {
+            card.classList.add('event');
+        }
+
+        card.innerHTML = `
+            <div class="holiday-title">${escapeHtml(item.title)}</div>
+            <div class="holiday-description">${escapeHtml(item.description)}</div>
+            <div class="holiday-badge">${formatCategory(typeClass)}</div>
+        `;
+
+        holidaysContent.appendChild(card);
+    });
+}
+
+/**
+ * Display legacy top 5 results
+ */
+function displayLegacyResults(results) {
+    // Create result cards
+    results.forEach((item, index) => {
+        const card = createResultCard(item, index + 1);
+        resultsList.appendChild(card);
+    });
+
+    // Hide category sections, show top 5
+    document.getElementById('weatherSection').classList.add('hidden');
+    document.getElementById('localNewsSection').classList.add('hidden');
+    document.getElementById('nationalNewsSection').classList.add('hidden');
+    document.getElementById('top5Section').classList.remove('hidden');
+}
+
+/**
+ * Display weather information
+ */
+function displayWeather(weatherItems) {
+    const weatherContent = document.getElementById('weatherContent');
+    weatherContent.innerHTML = '';
+
+    if (!weatherItems || weatherItems.length === 0) {
+        weatherContent.innerHTML = '<div class="empty-state">No weather data available</div>';
+        return;
+    }
+
+    weatherItems.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'weather-card';
+        if (item.category === 'weather_alert') {
+            card.classList.add('alert');
+        }
+
+        card.innerHTML = `
+            <div class="weather-title">${escapeHtml(item.title)}</div>
+            <div class="weather-description">${escapeHtml(item.description)}</div>
+            <div class="weather-meta">
+                <span class="meta-badge">${item.source}</span>
+                <span class="meta-badge score">Score: ${Math.round(item.score)}</span>
+            </div>
+        `;
+
+        weatherContent.appendChild(card);
+    });
+}
+
+/**
+ * Display news in a table
+ */
+function displayNewsTable(tbodyId, newsItems) {
+    const tbody = document.getElementById(tbodyId);
+    tbody.innerHTML = '';
+
+    if (!newsItems || newsItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No news items available</td></tr>';
+        return;
+    }
+
+    newsItems.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="rank-cell" data-label="#">${index + 1}</td>
+            <td class="headline-cell" data-label="Headline">
+                <span class="headline-link" title="${escapeHtml(item.description || item.title)}">
+                    ${escapeHtml(item.title)}
+                </span>
+            </td>
+            <td class="source-cell" data-label="Source">${escapeHtml(item.source)}</td>
+            <td class="score-cell" data-label="Score">${Math.round(item.score)}</td>
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 /**

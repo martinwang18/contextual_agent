@@ -13,7 +13,7 @@ from api.routes import api_bp
 from utils.config import Config
 
 # Load environment variables
-load_dotenv('config/.env')
+load_dotenv('../config/.env')
 
 # Initialize Flask app
 app = Flask(__name__, static_folder='../frontend', static_url_path='')

@@ -1,0 +1,67 @@
+# Environment Variables
+.env
+config/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node.js (if using Node backend)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Cache
+*.cache
+.cache/
+
+# Testing
+.coverage
+.pytest_cache/
+coverage/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Documentation builds
+docs/_build/

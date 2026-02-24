@@ -33,7 +33,7 @@ class ContextualOrchestrator:
             date: Date string (YYYY-MM-DD)
 
         Returns:
-            dict: SearchResult as dictionary
+            dict: SearchResult as dictionary with categorized results
         """
         try:
             # Step 1: Geocode the zipcode
@@ -54,10 +54,15 @@ class ContextualOrchestrator:
 
             logger.info(f"Gathered {len(all_items)} total items")
 
-            # Step 3: Rank items and get top 5
+            # Step 3: Rank items and get top 5 (backward compatibility)
             top_items = self.ranking.rank_items(all_items, date)
 
-            # Step 4: Format response
+            # Step 4: Categorize items for granular view
+            categorized = self._categorize_items(all_items, date)
+            logger.info(f"Categorized data keys: {list(categorized.keys())}")
+            logger.info(f"Weather: {len(categorized['weather'])}, Local: {len(categorized['local_news'])}, National: {len(categorized['national_news'])}")
+
+            # Step 5: Format response
             result = SearchResult(
                 status='success',
                 query={
@@ -67,7 +72,8 @@ class ContextualOrchestrator:
                 },
                 results=top_items,
                 metadata={
-                    'total_items_analyzed': len(all_items)
+                    'total_items_analyzed': len(all_items),
+                    'categorized': categorized  # Add categorized view
                 }
             )
 
@@ -81,6 +87,47 @@ class ContextualOrchestrator:
                 'query': {'zipcode': zipcode, 'date': date},
                 'results': []
             }
+
+    def _categorize_items(self, items, query_date=None):
+        """
+        Categorize and rank items by type
+
+        Args:
+            items: List of all ContextualItems
+            query_date: Date string for relevance scoring
+
+        Returns:
+            dict: Categorized and ranked items
+        """
+        logger.info(f"Categorizing {len(items)} items")
+
+        # Separate items by category
+        weather_items = []
+        local_news = []
+        national_news = []
+
+        for item in items:
+            # Score each item
+            item.score = self.ranking._calculate_score(item, query_date)
+
+            if item.category in ['weather', 'weather_alert', 'severe_weather']:
+                weather_items.append(item)
+            elif item.category in ['local_news', 'local_event']:
+                local_news.append(item)
+            elif item.category in ['global_news', 'regional_news']:
+                national_news.append(item)
+
+        # Sort each category by score
+        weather_items.sort(key=lambda x: x.score, reverse=True)
+        local_news.sort(key=lambda x: x.score, reverse=True)
+        national_news.sort(key=lambda x: x.score, reverse=True)
+
+        # Return categorized results
+        return {
+            'weather': [item.to_dict() for item in weather_items],
+            'local_news': [item.to_dict() for item in local_news[:10]],  # Top 10
+            'national_news': [item.to_dict() for item in national_news[:10]]  # Top 10
+        }
 
     def _gather_data_parallel(self, location, date):
         """

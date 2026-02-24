@@ -66,10 +66,58 @@
 
             <section id="results" class="results-section hidden">
                 <div class="results-header">
-                    <h2>Top 5 Trending Items</h2>
+                    <h2>Contextual Information</h2>
                     <p class="results-location"></p>
                 </div>
-                <div id="resultsList" class="results-list"></div>
+
+                <!-- Weather Section -->
+                <div id="weatherSection" class="category-section">
+                    <h3>🌤️ Today's Weather</h3>
+                    <div id="weatherContent" class="weather-cards"></div>
+                </div>
+
+                <!-- Local News Section -->
+                <div id="localNewsSection" class="category-section">
+                    <h3>📰 Top 10 Local News</h3>
+                    <div class="table-container">
+                        <table id="localNewsTable" class="news-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Headline</th>
+                                    <th>Source</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="localNewsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- National News Section -->
+                <div id="nationalNewsSection" class="category-section">
+                    <h3>🌍 Top 10 National News</h3>
+                    <div class="table-container">
+                        <table id="nationalNewsTable" class="news-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Headline</th>
+                                    <th>Source</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="nationalNewsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Legacy Top 5 View (kept for compatibility) -->
+                <div id="top5Section" class="category-section hidden">
+                    <h3>🏆 Top 5 Overall</h3>
+                    <div id="resultsList" class="results-list"></div>
+                </div>
+
                 <div class="results-footer">
                     <p id="resultsMetadata"></p>
                 </div>

@@ -375,6 +375,149 @@ footer p {
     font-size: 0.875rem;
 }
 
+/* Category Sections */
+.category-section {
+    margin-bottom: 3rem;
+}
+
+.category-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* Weather Cards */
+.weather-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.weather-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid var(--primary-color);
+}
+
+.weather-card.alert {
+    border-left-color: var(--danger-color);
+    background: #fef2f2;
+}
+
+.weather-card .weather-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.weather-card .weather-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.weather-card .weather-meta {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* News Tables */
+.table-container {
+    overflow-x: auto;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.news-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.news-table thead {
+    background: var(--background);
+}
+
+.news-table th {
+    text-align: left;
+    padding: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.news-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.news-table tbody tr {
+    transition: background 0.2s;
+}
+
+.news-table tbody tr:hover {
+    background: var(--background);
+}
+
+.news-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.news-table .rank-cell {
+    font-weight: 700;
+    color: var(--primary-color);
+    width: 50px;
+    text-align: center;
+}
+
+.news-table .headline-cell {
+    font-weight: 500;
+    color: var(--text-primary);
+    max-width: 500px;
+}
+
+.news-table .headline-cell .headline-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.news-table .headline-cell .headline-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.news-table .source-cell {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.news-table .score-cell {
+    font-weight: 600;
+    color: var(--success-color);
+    text-align: center;
+    width: 80px;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
 /* Utility Classes */
 .hidden {
     display: none !important;
@@ -412,5 +555,58 @@ footer p {
         display: block;
         width: 100%;
         margin: 0.25rem 0;
+    }
+
+    .category-section h3 {
+        font-size: 1.25rem;
+    }
+
+    .weather-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .news-table {
+        font-size: 0.85rem;
+    }
+
+    .news-table th,
+    .news-table td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .news-table .headline-cell {
+        max-width: 200px;
+    }
+
+    /* Stack table on very small screens */
+    @media (max-width: 480px) {
+        .news-table thead {
+            display: none;
+        }
+
+        .news-table tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+        }
+
+        .news-table td {
+            display: block;
+            text-align: right;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .news-table td:last-child {
+            border-bottom: none;
+        }
+
+        .news-table td::before {
+            content: attr(data-label);
+            float: left;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
     }
 }

@@ -10,6 +10,7 @@ from services.geocoding_service import GeocodingService
 from services.weather_service import WeatherService
 from services.news_service import NewsService
 from services.ranking_service import RankingService
+from services.holidays_service import HolidaysService
 from models.item import SearchResult
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ class ContextualOrchestrator:
         self.geocoding = GeocodingService()
         self.weather = WeatherService()
         self.news = NewsService()
+        self.holidays = HolidaysService()
         self.ranking = RankingService()
 
     def get_contextual_items(self, zipcode, date):
@@ -105,6 +107,7 @@ class ContextualOrchestrator:
         weather_items = []
         local_news = []
         national_news = []
+        holidays = []
 
         for item in items:
             # Score each item
@@ -116,14 +119,18 @@ class ContextualOrchestrator:
                 local_news.append(item)
             elif item.category in ['global_news', 'regional_news']:
                 national_news.append(item)
+            elif item.category in ['holiday', 'event']:
+                holidays.append(item)
 
         # Sort each category by score
         weather_items.sort(key=lambda x: x.score, reverse=True)
         local_news.sort(key=lambda x: x.score, reverse=True)
         national_news.sort(key=lambda x: x.score, reverse=True)
+        holidays.sort(key=lambda x: x.score, reverse=True)
 
         # Return categorized results
         return {
+            'holidays': [item.to_dict() for item in holidays],
             'weather': [item.to_dict() for item in weather_items],
             'local_news': [item.to_dict() for item in local_news[:10]],  # Top 10
             'national_news': [item.to_dict() for item in national_news[:10]]  # Top 10
@@ -142,7 +149,10 @@ class ContextualOrchestrator:
         """
         all_items = []
 
-        # Define tasks
+        # Get holidays first (fast, no API call)
+        holiday_items = self.holidays.get_holidays(date, location)
+
+        # Define tasks for parallel execution
         tasks = {
             'weather': lambda: self.weather.get_weather_items(location, date),
             'news': lambda: self.news.get_news_items(location, date)
@@ -163,5 +173,10 @@ class ContextualOrchestrator:
                     all_items.extend(items)
                 except Exception as e:
                     logger.error(f"Error in {service_name}: {str(e)}")
+
+        # Add holiday items
+        all_items.extend(holiday_items)
+        if holiday_items:
+            logger.info(f"holidays returned {len(holiday_items)} items")
 
         return all_items

@@ -141,6 +141,14 @@ function displayResults(data) {
  * Display categorized results in tables
  */
 function displayCategorizedResults(categorized) {
+    // Display holidays/events (if any)
+    if (categorized.holidays && categorized.holidays.length > 0) {
+        displayHolidays(categorized.holidays);
+        document.getElementById('holidaysSection').classList.remove('hidden');
+    } else {
+        document.getElementById('holidaysSection').classList.add('hidden');
+    }
+
     // Display weather
     displayWeather(categorized.weather);
 
@@ -155,6 +163,35 @@ function displayCategorizedResults(categorized) {
     document.getElementById('localNewsSection').classList.remove('hidden');
     document.getElementById('nationalNewsSection').classList.remove('hidden');
     document.getElementById('top5Section').classList.add('hidden');
+}
+
+/**
+ * Display holidays and special events
+ */
+function displayHolidays(holidayItems) {
+    const holidaysContent = document.getElementById('holidaysContent');
+    holidaysContent.innerHTML = '';
+
+    holidayItems.forEach(item => {
+        const card = document.createElement('div');
+        const typeClass = item.metadata?.type || 'observance';
+        const isFederal = item.metadata?.is_federal;
+
+        card.className = 'holiday-card';
+        if (isFederal) {
+            card.classList.add('federal');
+        } else if (item.category === 'event') {
+            card.classList.add('event');
+        }
+
+        card.innerHTML = `
+            <div class="holiday-title">${escapeHtml(item.title)}</div>
+            <div class="holiday-description">${escapeHtml(item.description)}</div>
+            <div class="holiday-badge">${formatCategory(typeClass)}</div>
+        `;
+
+        holidaysContent.appendChild(card);
+    });
 }
 
 /**

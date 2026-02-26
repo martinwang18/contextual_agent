@@ -11,6 +11,7 @@ from services.weather_service import WeatherService
 from services.news_service import NewsService
 from services.ranking_service import RankingService
 from services.holidays_service import HolidaysService
+from services.recommendations_service import RecommendationsService
 from models.item import SearchResult
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ class ContextualOrchestrator:
         self.news = NewsService()
         self.holidays = HolidaysService()
         self.ranking = RankingService()
+        self.recommendations = RecommendationsService()
 
     def get_contextual_items(self, zipcode, date):
         """
@@ -128,12 +130,76 @@ class ContextualOrchestrator:
         national_news.sort(key=lambda x: x.score, reverse=True)
         holidays.sort(key=lambda x: x.score, reverse=True)
 
-        # Return categorized results
+        # Generate retail/grocery recommendations for each category IN PARALLEL
+        holiday_recommendations = []
+        weather_recommendations = []
+        local_news_recommendations = []
+        national_news_recommendations = []
+
+        # Prepare tasks for parallel execution
+        recommendation_tasks = {}
+
+        if holidays:
+            recommendation_tasks['holidays'] = lambda: self.recommendations.get_recommendations_for_holidays(
+                [item.to_dict() for item in holidays]
+            )
+
+        if weather_items:
+            recommendation_tasks['weather'] = lambda: self.recommendations.get_recommendations_for_weather(
+                [item.to_dict() for item in weather_items]
+            )
+
+        if local_news:
+            recommendation_tasks['local_news'] = lambda: self.recommendations.get_recommendations_for_news(
+                [item.to_dict() for item in local_news[:10]],
+                is_local=True
+            )
+
+        if national_news:
+            recommendation_tasks['national_news'] = lambda: self.recommendations.get_recommendations_for_news(
+                [item.to_dict() for item in national_news[:10]],
+                is_local=False
+            )
+
+        # Execute all recommendation calls in parallel
+        if recommendation_tasks:
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                future_to_category = {
+                    executor.submit(task): category
+                    for category, task in recommendation_tasks.items()
+                }
+
+                for future in as_completed(future_to_category):
+                    category = future_to_category[future]
+                    try:
+                        result = future.result()
+                        items_count = len(result.get('items', [])) if isinstance(result, dict) else 0
+                        logger.info(f"Generated {items_count} {category} recommendations")
+
+                        # Assign results to appropriate variables
+                        if category == 'holidays':
+                            holiday_recommendations = result
+                        elif category == 'weather':
+                            weather_recommendations = result
+                        elif category == 'local_news':
+                            local_news_recommendations = result
+                        elif category == 'national_news':
+                            national_news_recommendations = result
+                    except Exception as e:
+                        logger.error(f"Error generating {category} recommendations: {str(e)}")
+
+        # Return categorized results with recommendations
         return {
             'holidays': [item.to_dict() for item in holidays],
             'weather': [item.to_dict() for item in weather_items],
             'local_news': [item.to_dict() for item in local_news[:10]],  # Top 10
-            'national_news': [item.to_dict() for item in national_news[:10]]  # Top 10
+            'national_news': [item.to_dict() for item in national_news[:10]],  # Top 10
+            'recommendations': {
+                'holidays': holiday_recommendations,
+                'weather': weather_recommendations,
+                'local_news': local_news_recommendations,
+                'national_news': national_news_recommendations
+            }
         }
 
     def _gather_data_parallel(self, location, date):

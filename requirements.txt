@@ -13,3 +13,7 @@ pytest==7.4.3
 
 # Date/Time utilities
 python-dateutil==2.8.2
+
+# LLM Integration
+portkey-ai==2.2.0
+openai==2.24.0

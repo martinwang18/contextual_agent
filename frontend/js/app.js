@@ -158,6 +158,14 @@ function displayCategorizedResults(categorized) {
     // Display national news table
     displayNewsTable('nationalNewsBody', categorized.national_news);
 
+    // Display recommendations (if available)
+    if (categorized.recommendations) {
+        displayRecommendations('holidayRecommendationsContent', categorized.recommendations.holidays, 'holidayRecommendations');
+        displayRecommendations('weatherRecommendationsContent', categorized.recommendations.weather, 'weatherRecommendations');
+        displayRecommendations('localNewsRecommendationsContent', categorized.recommendations.local_news, 'localNewsRecommendations');
+        displayRecommendations('nationalNewsRecommendationsContent', categorized.recommendations.national_news, 'nationalNewsRecommendations');
+    }
+
     // Show category sections
     document.getElementById('weatherSection').classList.remove('hidden');
     document.getElementById('localNewsSection').classList.remove('hidden');
@@ -268,6 +276,66 @@ function displayNewsTable(tbodyId, newsItems) {
             <td class="score-cell" data-label="Score">${Math.round(item.score)}</td>
         `;
         tbody.appendChild(row);
+    });
+}
+
+/**
+ * Display retail/grocery recommendations
+ */
+function displayRecommendations(contentId, recommendations, sectionId) {
+    const content = document.getElementById(contentId);
+    const section = document.getElementById(sectionId);
+
+    content.innerHTML = '';
+
+    // Handle both old format (array) and new format (object with items and reasoning)
+    let items = [];
+    let reasoning = '';
+
+    if (!recommendations) {
+        section.classList.add('hidden');
+        return;
+    }
+
+    if (Array.isArray(recommendations)) {
+        // Old format: array of recommendations
+        items = recommendations;
+    } else if (typeof recommendations === 'object') {
+        // New format: object with items and reasoning
+        items = recommendations.items || [];
+        reasoning = recommendations.reasoning || '';
+    }
+
+    if (items.length === 0) {
+        section.classList.add('hidden');
+        return;
+    }
+
+    section.classList.remove('hidden');
+
+    // Display LLM reasoning if available
+    if (reasoning) {
+        const reasoningDiv = document.createElement('div');
+        reasoningDiv.className = 'llm-reasoning';
+        reasoningDiv.innerHTML = `
+            <div class="reasoning-icon">🤖</div>
+            <div class="reasoning-text">${escapeHtml(reasoning)}</div>
+        `;
+        content.appendChild(reasoningDiv);
+    }
+
+    // Display recommendation items
+    items.forEach(rec => {
+        const card = document.createElement('div');
+        card.className = 'recommendation-card';
+
+        card.innerHTML = `
+            <div class="recommendation-item">${escapeHtml(rec.item)}</div>
+            <div class="recommendation-rationale">${escapeHtml(rec.rationale)}</div>
+            <div class="recommendation-category">${escapeHtml(rec.category)}</div>
+        `;
+
+        content.appendChild(card);
     });
 }
 
